@@ -3,9 +3,9 @@ const symmetry = 12;
 const symmetryAngle = 360 / symmetry;
 
 function setup() {
-  createCanvas(1000, 1000);
-  // console.log(windowWidth)
-  // console.log(windowHeight)
+  createCanvas(windowWidth, windowHeight);
+  console.log(windowWidth)
+  console.log(windowHeight)
 
   smallerDim = min(width, height)
   console.log(smallerDim)
