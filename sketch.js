@@ -1,58 +1,54 @@
 // Symmetry corresponding to the number of reflections. Change the number for different number of reflections
-const symmetry = 12;
+const symmetry = 8;
 const symmetryAngle = 360 / symmetry;
+const fps = 30;
+const animationTimeS = 4;
+const oneCycle = fps * animationTimeS;
+
+let ringsCount = 7;
+let minRadius, radiusRange, radiusBuffer;
+let flowers;
+let completedFlowers = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  console.log(windowWidth)
-  console.log(windowHeight)
-
-  smallerDim = min(width, height)
-  console.log(smallerDim)
-
   angleMode(DEGREES);
-  clearScreen();
-  draw();
-  frameRate(1);
+  frameRate(fps);
+  resetRingParams();
+  flowers = genAllFlowers();
 }
 
 function draw() {
-  // background(255);
   clearScreen();
   translate(width / 2, height / 2);
   stroke(190);
   noFill();
 
   push();
+  colorMode(RGB)
   stroke(genLineColor(0, 1));
   strokeWeight(5);
   circle(0, 0, 20)
   pop();
 
-  let ringsCount = 8;
-
-  let minRadius = 20;
-  let radiusRange = 50;
-  let radiusBuffer = 15;
-
-  for (let c = 0; c < ringsCount; c += 1) {
-    let minVal = minRadius
-    let maxVal = minVal + radiusRange; // + (c * incrementalRadius);
-    let detailCount = 10 //+ c * 5;
-    let n = genIncRandomNums(detailCount, minVal, maxVal);
-    let fullNums = genFullNumsList(n);
-
-    push();
-    colorMode(RGB)
-    stroke(genLineColor(c, ringsCount - 1));
-    strokeWeight(5 + 3 * c);
-    drawPetalsFromAllNums(fullNums);
-    pop();
-
-    minRadius = maxVal + radiusBuffer; // set up next ring's smallest radius
-    radiusBuffer += 2;
+  // persist the completed rings by redrawing then without animation
+  for (const f of completedFlowers.values()) {
+    f.drawFlower();
   }
-  // noLoop();
+  
+  if (flowers.length > 0) {
+    flowers[0].animateFlower(oneCycle);
+  }
+
+  if (frameCount > 0 && frameCount % oneCycle === 0) {
+    // one ring has been successfully drawn, move to next
+    completedFlowers.push(flowers.shift());
+  }
+
+  if (flowers.length === 0) {
+    flowers = genAllFlowers();
+    animS.reset();
+  }
 }
 
 // Clear Screen function
@@ -61,6 +57,14 @@ function clearScreen() {
   colorMode(RGB);
   background(color(87, 21, 61));
   pop();
+}
+
+function resetRingParams() {
+  minRadius = 20;
+  radiusRange = 50;
+  radiusBuffer = 15;
+  c = 0;
+  completedFlowers = [];
 }
 
 function genLineColor(ringNum, maxNum) {
@@ -72,7 +76,7 @@ function genLineColor(ringNum, maxNum) {
 
 function genFullNumsList(n) {
   let fullNums = [];
-  for (let i = 0; i < symmetry; i += 1) {
+  for (let s = 0; s < symmetry; s += 1) {
     fullNums = fullNums.concat(n);
     fullNums = fullNums.concat(n.toReversed());
   }
@@ -91,14 +95,25 @@ function genIncRandomNums(count, minVal, maxVal) {
   return nums;
 }
 
-function drawPetalsFromAllNums(allNums) {
-  let incrementalAngle = 360 / allNums.length;
-  beginShape();
-  for (let i = 0; i < allNums.length; i += 1) {
-    let r = allNums[i];
-    let x = r * cos(i * incrementalAngle);
-    let y = r * sin(i * incrementalAngle);
-    vertex(x, y);
+function genAllFlowers() {
+  resetRingParams();
+
+  let flowerList = [];
+  for (let i = 0; i < ringsCount; i += 1) {
+    let minVal = minRadius
+    let maxVal = minVal + radiusRange + (i * 2);
+    let detailCount = 10 + i * 5;
+    let n = genIncRandomNums(detailCount, minVal, maxVal);
+    let fullNums = genFullNumsList(n);
+
+    let lineColor = genLineColor(i, ringsCount - 1);
+    let thickness = 5 + (3 * i);
+
+    let flower = new Flower(i, fullNums, lineColor, thickness);
+    flowerList.push(flower);
+
+    minRadius = maxVal + radiusBuffer; // set up next ring's smallest radius
+    radiusBuffer += 2;
   }
-  endShape(CLOSE);
+  return flowerList;
 }
