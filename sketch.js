@@ -1,3 +1,5 @@
+p5.disableFriendlyErrors = true; // disables FES
+
 // Symmetry corresponding to the number of reflections. Change the number for different number of reflections
 const symmetry = 8;
 const symmetryAngle = 360 / symmetry;
@@ -21,14 +23,13 @@ function setup() {
 function draw() {
   clearScreen();
   translate(width / 2, height / 2);
-  stroke(190);
   noFill();
 
   push();
   colorMode(RGB)
   stroke(genLineColor(0, 1));
-  strokeWeight(5);
-  circle(0, 0, 20)
+  strokeWeight(4);
+  circle(0, 0, 15)
   pop();
 
   // persist the completed rings by redrawing then without animation
@@ -48,6 +49,7 @@ function draw() {
   if (flowers.length === 0) {
     flowers = genAllFlowers();
     animS.reset();
+    frameCount = -1; // resetting so calculations don't become huge after running a long time
   }
 }
 
@@ -60,9 +62,10 @@ function clearScreen() {
 }
 
 function resetRingParams() {
-  minRadius = 20;
-  radiusRange = 50;
-  radiusBuffer = 15;
+  let smallerDim = Math.min(width, height);
+  minRadius = 0.02 * smallerDim;
+  radiusRange = 0.04 * smallerDim;
+  radiusBuffer = 0.01 * smallerDim;
   c = 0;
   completedFlowers = [];
 }
@@ -102,12 +105,12 @@ function genAllFlowers() {
   for (let i = 0; i < ringsCount; i += 1) {
     let minVal = minRadius
     let maxVal = minVal + radiusRange + (i * 2);
-    let detailCount = 10 + i * 5;
+    let detailCount = 10 + (i * 5);
     let n = genIncRandomNums(detailCount, minVal, maxVal);
     let fullNums = genFullNumsList(n);
 
     let lineColor = genLineColor(i, ringsCount - 1);
-    let thickness = 5 + (3 * i);
+    let thickness = 5 + (2 * i);
 
     let flower = new Flower(i, fullNums, lineColor, thickness);
     flowerList.push(flower);
